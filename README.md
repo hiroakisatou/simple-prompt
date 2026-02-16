@@ -20,7 +20,7 @@ bundle install
 or
 
 ```bash
-gem install simple-input
+gem install simple_input
 ```
 
 ## Usage
