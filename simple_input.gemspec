@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 Gem::Specification.new do |spec|
-  spec.name          = 'simple-input'
+  spec.name          = 'simple_input'
   spec.version       = '0.2.1'
   spec.authors       = ['Hiroaki Satou']
   spec.email         = ['']
