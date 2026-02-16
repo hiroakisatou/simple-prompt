@@ -11,10 +11,22 @@ https://github.com/charmbracelet/huh
 
 ## Installation
 
+Add to your Gemfile:
+
+```ruby
+gem "simple_prompt"
+```
+
+Then run:
+
 ```bash
-git clone <this-repo>
-cd simple-prompt
 bundle install
+```
+
+Or install directly:
+
+```bash
+gem install simple_prompt
 ```
 
 ## Usage
@@ -22,7 +34,7 @@ bundle install
 ### Basic Input
 
 ```ruby
-require_relative 'input'
+require 'simple_prompt'
 
 name = Input.new_input
              .title('What is your name?')

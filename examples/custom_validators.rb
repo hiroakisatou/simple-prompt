@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative '../input'
+require 'simple_prompt'
 
 # Define a custom validator provider
 module MyValidators

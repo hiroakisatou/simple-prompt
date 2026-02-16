@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative '../input'
+require 'simple_prompt'
 
 RSpec.describe Input do
   # Helper: create an Input with injected IO using the private `with_context` method
