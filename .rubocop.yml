@@ -1,0 +1,55 @@
+plugins:
+  - rubocop-rspec
+
+require:
+  - rubocop-sorbet
+
+AllCops:
+  NewCops: enable
+  TargetRubyVersion: 3.4
+  SuggestExtensions: false
+
+Style/Documentation:
+  Enabled: false
+
+Style/Semicolon:
+  AllowAsExpressionSeparator: true
+
+Style/SingleLineMethods:
+  Enabled: false
+
+Layout/LineLength:
+  Max: 120
+
+Metrics/BlockLength:
+  Exclude:
+    - "spec/**/*"
+
+Metrics/MethodLength:
+  Max: 20
+
+Metrics/AbcSize:
+  Max: 20
+
+Naming/MethodParameterName:
+  AllowedNames:
+    - r
+    - w
+
+RSpec/MultipleExpectations:
+  Max: 3
+
+RSpec/ExampleLength:
+  Max: 12
+
+RSpec/DescribedClass:
+  EnforcedStyle: explicit
+
+Sorbet/FalseSigil:
+  Enabled: false
+
+Sorbet/StrictSigil:
+  Enabled: false
+
+Sorbet/ValidSigil:
+  Enabled: false
