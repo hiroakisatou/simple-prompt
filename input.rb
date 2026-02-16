@@ -27,7 +27,6 @@ class Input
 
   private_class_method :new
 
-  sig { void }
   def initialize
     @reader = T.let($stdin, T.any(IO, StringIO))
     @writer = T.let($stdout, T.any(IO, StringIO))
@@ -102,6 +101,6 @@ class Input
 
   private
 
-  sig { params(r: T.any(IO, StringIO), w: T.any(IO, StringIO)).returns(T.self_type) }
-  def with_context(r, w); @reader = r; @writer = w; self; end
+  sig { params(reader: T.any(IO, StringIO), writer: T.any(IO, StringIO)).returns(Input) }
+  def with_context(reader, writer); @reader = reader; @writer = writer; self; end
 end

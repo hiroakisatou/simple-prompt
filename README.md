@@ -167,6 +167,92 @@ age = Input.new_input
 
 All methods (except `#run`) return `self` for chaining.
 
+## Complete Example: Area Calculator
+
+Here's a practical example that demonstrates validation, conversion, and dependency injection for testing:
+
+```ruby
+class AreaCalculator
+  def initialize(reader = $stdin, writer = $stdout)
+    @reader = reader
+    @writer = writer
+  end
+
+  # Reusable conversion function
+  def to_number
+    ->(value) do
+      if value.to_i.to_s == value
+        value.to_i
+      elsif value.to_f.to_s == value
+        value.to_f
+      else
+        raise ArgumentError, "Invalid number: #{value}"
+      end
+    end
+  end
+
+  def input_length
+    Input.new_input
+      .send(:with_context, @reader, @writer)
+      .title('What is the length of the room in feet?')
+      .validate { |value| value.to_i > 0 ? nil : 'Length must be a positive number' }
+      .convert_func(to_number)
+      .run
+  end
+
+  def input_width
+    Input.new_input
+      .send(:with_context, @reader, @writer)
+      .title('What is the width of the room in feet?')
+      .validate { |value| value.to_i > 0 ? nil : 'Width must be a positive number' }
+      .convert_func(to_number)
+      .run
+  end
+
+  def calculate_area
+    length = input_length
+    width = input_width
+    area = length * width
+
+    @writer.puts "\nYou entered dimensions of #{length} feet by #{width} feet."
+    @writer.puts "The area is #{area} square feet"
+  end
+end
+```
+
+This example can be tested with RSpec using mocks:
+
+```ruby
+RSpec.describe AreaCalculator do
+  let(:writer) { double('writer') }
+  let(:reader) { double('reader') }
+  subject(:calculator) { AreaCalculator.new(reader, writer) }
+
+  before do
+    allow(writer).to receive(:puts)
+    allow(writer).to receive(:print)
+  end
+
+  it 'returns integer for valid integer input' do
+    allow(reader).to receive(:gets).and_return("10\n")
+
+    result = calculator.input_length
+
+    expect(result).to eq(10)
+  end
+
+  it 'returns float for valid float input' do
+    allow(reader).to receive(:gets).and_return("10.5\n")
+
+    result = calculator.input_length
+
+    expect(result).to eq(10.5)
+  end
+end
+```
+
+See `examples/area_calculator.rb` and `examples/area_calculator_spec.rb` for the complete implementation.
+
 ## Running Examples
 
 ```bash
@@ -184,6 +270,9 @@ ruby examples/validation_patterns.rb
 
 # Error handling and conversion safety
 ruby examples/error_handling.rb
+
+# Area calculator with numeric conversion (practical example)
+ruby examples/area_calculator.rb
 ```
 
 ## Testing

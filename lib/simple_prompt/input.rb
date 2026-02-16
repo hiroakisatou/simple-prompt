@@ -10,6 +10,7 @@ class Input
 
   ValidatorProc = T.type_alias { T.proc.params(arg0: String).returns(T.nilable(String)) }
   ValidatorType = T.type_alias { T.any(Symbol, ValidatorProc) }
+  ConvertProc = T.type_alias { T.proc.params(arg0: String).returns(T.untyped) }
 
   sig { returns(Input) }
   def self.new_input; new; end
@@ -18,12 +19,13 @@ class Input
 
   sig { void }
   def initialize
-    @reader = T.let($stdin, T.any(IO, StringIO))
-    @writer = T.let($stdout, T.any(IO, StringIO))
+    @reader = T.let($stdin, T.untyped)
+    @writer = T.let($stdout, T.untyped)
     @title = T.let('', String)
     @prompt = T.let('> ', String)
     @validators = T.let([], T::Array[ValidatorProc])
     @validator_provider = T.let(DefaultValidators, T.untyped)
+    @convert_func = T.let(nil, T.nilable(ConvertProc))
   end
 
   sig { params(text: String).returns(T.self_type) }
@@ -34,6 +36,12 @@ class Input
 
   sig { params(provider: T.untyped).returns(T.self_type) }
   def with_validators(provider); @validator_provider = provider; self; end
+
+  sig { params(converter: T.nilable(ConvertProc), block: T.nilable(ConvertProc)).returns(T.self_type) }
+  def convert_func(converter = nil, &block)
+    @convert_func = block || converter
+    self
+  end
 
   sig { params(validator: T.nilable(ValidatorType), block: T.nilable(ValidatorProc)).returns(T.self_type) }
   def validate(validator = nil, &block)
@@ -51,7 +59,7 @@ class Input
     self
   end
 
-  sig { returns(String) }
+  sig { returns(T.untyped) }
   def run
     loop do
       @writer.puts "\e[1m#{@title}\e[0m" unless @title.empty?
@@ -64,7 +72,13 @@ class Input
       error = T.let(nil, T.nilable(String))
       @validators.each { |v| break if (error = v.call(val)) }
 
-      return val unless error
+      unless error
+        begin
+          return @convert_func ? @convert_func.call(val) : val
+        rescue StandardError => e
+          error = "Conversion error: #{e.message} (please add validation)"
+        end
+      end
 
       # 視認性のための余白
       @writer.puts ''
@@ -78,6 +92,6 @@ class Input
 
   private
 
-  sig { params(r: T.any(IO, StringIO), w: T.any(IO, StringIO)).returns(T.self_type) }
-  def with_context(r, w); @reader = r; @writer = w; self; end
+  sig { params(reader: T.untyped, writer: T.untyped).returns(T.self_type) }
+  def with_context(reader, writer); @reader = reader; @writer = writer; self; end
 end
