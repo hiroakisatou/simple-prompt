@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require 'simple_prompt'
+require_relative '../input'
 
 RSpec.describe Input do
   # Helper: create an Input with injected IO using the private `with_context` method
@@ -107,7 +107,7 @@ RSpec.describe Input do
         result = input.validate(:not_empty).run
 
         expect(result).to eq('hello')
-        expect(writer.string).to include('入力してください')
+        expect(writer.string).to include('Input is required')
       end
 
       it 'raises ArgumentError for unknown validator' do
@@ -127,7 +127,7 @@ RSpec.describe Input do
 
         expect(result).to eq('hello')
         output = writer.string
-        expect(output).to include('入力してください')
+        expect(output).to include('Input is required')
         expect(output).to include('too short')
       end
     end
@@ -151,6 +151,76 @@ RSpec.describe Input do
     end
   end
 
+  describe '#convert_func' do
+    context 'with a block converter' do
+      it 'converts the input value' do
+        input, = build_input("42\n")
+        result = input.convert_func { |val| val.to_i }.run
+
+        expect(result).to eq(42)
+      end
+
+      it 'converts to uppercase' do
+        input, = build_input("hello\n")
+        result = input.convert_func { |val| val.upcase }.run
+
+        expect(result).to eq('HELLO')
+      end
+    end
+
+    context 'with a Proc converter' do
+      it 'converts using the proc' do
+        converter = proc { |val| val.to_i * 2 }
+        input, = build_input("21\n")
+        result = input.convert_func(converter).run
+
+        expect(result).to eq(42)
+      end
+    end
+
+    context 'with validation and conversion' do
+      it 'validates before converting' do
+        input, writer = build_input("abc\n42\n")
+        result = input
+                 .validate { |val| val.match?(/^\d+$/) ? nil : 'Must be a number' }
+                 .convert_func { |val| val.to_i }
+                 .run
+
+        expect(result).to eq(42)
+        expect(writer.string).to include('Must be a number')
+      end
+    end
+
+    context 'without converter' do
+      it 'returns the string as-is' do
+        input, = build_input("hello\n")
+        result = input.run
+
+        expect(result).to eq('hello')
+      end
+    end
+
+    context 'when conversion raises an exception' do
+      it 'shows error message and prompts user to add validation' do
+        input, writer = build_input("abc\n42\n")
+        result = input.convert_func { |val| Integer(val) }.run
+
+        expect(result).to eq(42)
+        output = writer.string
+        expect(output).to include('Conversion error')
+        expect(output).to include('please add validation')
+      end
+
+      it 're-prompts after conversion error' do
+        input, writer = build_input("not_a_number\n123\n")
+        result = input.convert_func { |val| Integer(val) }.run
+
+        expect(result).to eq(123)
+        expect(writer.string).to include('Conversion error')
+      end
+    end
+  end
+
   describe 'method chaining' do
     it 'supports fluent API' do
       input, = build_input("test\n")
@@ -161,6 +231,17 @@ RSpec.describe Input do
                .run
 
       expect(result).to eq('test')
+    end
+
+    it 'supports chaining with convert_func' do
+      input, = build_input("123\n")
+      result = input
+               .title('Enter a number')
+               .validate(:not_empty)
+               .convert_func { |val| val.to_i }
+               .run
+
+      expect(result).to eq(123)
     end
   end
 end

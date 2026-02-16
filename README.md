@@ -1,4 +1,4 @@
-# Simple Prompt
+# Simple Input
 
 this is a simple prompt library for ruby.
 inspired by golang's huh! library's input component.
@@ -11,22 +11,16 @@ https://github.com/charmbracelet/huh
 
 ## Installation
 
-Add to your Gemfile:
-
-```ruby
-gem "simple_prompt"
-```
-
-Then run:
-
 ```bash
+git clone <this-repo>
+cd simple-input
 bundle install
 ```
 
-Or install directly:
+or
 
 ```bash
-gem install simple_prompt
+gem install simple-input
 ```
 
 ## Usage
@@ -34,7 +28,7 @@ gem install simple_prompt
 ### Basic Input
 
 ```ruby
-require 'simple_prompt'
+require_relative 'input'
 
 name = Input.new_input
              .title('What is your name?')
@@ -103,6 +97,57 @@ You can pass validators in three ways:
 
 Validators are functions that take a `String` and return `nil` (valid) or an error message `String`.
 
+### Value Conversion
+
+Use `convert_func` to transform the input value before it's returned. This is useful for converting strings to integers, floats, arrays, or any other type.
+
+```ruby
+# Convert to integer
+age = Input.new_input
+           .title('How old are you?')
+           .validate(:not_empty)
+           .validate { |val| val.match?(/^\d+$/) ? nil : 'Must be a number' }
+           .convert_func { |val| val.to_i }
+           .run
+
+puts age.class  # => Integer
+```
+
+```ruby
+# Convert to array
+tags = Input.new_input
+            .title('Enter tags (comma-separated)')
+            .convert_func { |val| val.split(',').map(&:strip) }
+            .run
+
+puts tags.inspect  # => ["ruby", "cli", "prompt"]
+```
+
+You can pass a converter in two ways:
+
+| Type | Example |
+|------|---------|
+| **Proc/Lambda** | `.convert_func(-> (val) { val.to_i })` |
+| **Block** | `.convert_func { \|val\| val.to_i }` |
+
+Converters are functions that take a `String` and return any type. Validation happens before conversion.
+
+**Important:** If conversion fails with an exception, an error message will be displayed prompting you to add validation. Always validate input before conversion to prevent errors:
+
+```ruby
+# ❌ Bad - conversion can fail without validation
+age = Input.new_input
+           .convert_func { |val| Integer(val) }  # Raises exception on invalid input
+           .run
+
+# ✅ Good - validate before conversion
+age = Input.new_input
+           .validate(:not_empty)
+           .validate { |val| val.match?(/^\d+$/) ? nil : 'Must be a number' }
+           .convert_func { |val| val.to_i }
+           .run
+```
+
 ### Signal Handling
 
 - **Ctrl-C** - Prints `(canceled)` and exits gracefully
@@ -117,6 +162,7 @@ Validators are functions that take a `String` and return `nil` (valid) or an err
 | `#prompt(text)` | Set the prompt string (default: `"> "`) |
 | `#validate(validator, &block)` | Add a validator (Symbol, Proc, or block) |
 | `#with_validators(provider)` | Set a custom validator provider module |
+| `#convert_func(converter, &block)` | Set a converter function to transform the input value |
 | `#run` | Start the interactive input loop and return the result |
 
 All methods (except `#run`) return `self` for chaining.
@@ -124,8 +170,20 @@ All methods (except `#run`) return `self` for chaining.
 ## Running Examples
 
 ```bash
+# Basic usage and validation
 ruby examples/basic.rb
+
+# Custom validator providers
 ruby examples/custom_validators.rb
+
+# Value conversion (string to int, array, etc.)
+ruby examples/convert.rb
+
+# Common validation patterns (email, password, range, choice)
+ruby examples/validation_patterns.rb
+
+# Error handling and conversion safety
+ruby examples/error_handling.rb
 ```
 
 ## Testing

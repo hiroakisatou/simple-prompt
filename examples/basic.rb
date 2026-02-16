@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require 'simple_prompt'
+require_relative '../input'
 
 # Basic usage - simple text input
 name = Input.new_input

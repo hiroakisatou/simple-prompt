@@ -1,0 +1,37 @@
+# Gem build artifacts
+*.gem
+*.rbc
+/.config
+/coverage/
+/InstalledFiles
+/pkg/
+/spec/reports/
+/spec/examples.txt
+/test/tmp/
+/test/version_tmp/
+/tmp/
+
+# RubyGems
+Gemfile.lock
+
+# Bundler
+/.bundle/
+/vendor/bundle
+
+# RSpec
+.rspec_status
+
+# Sorbet
+/sorbet/rbi/
+/sorbet/config
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
